@@ -25,8 +25,6 @@ void init_hm(struct hashmap_t *hm, int hmax) {
     for (int i = 0; i < hm->hmax; i++) {
         hm->buckets[i] = NULL;
     }
-
-
 }
 
 void put(struct hashmap_t *hm, char* key, char* value) {
@@ -90,13 +88,17 @@ void put(struct hashmap_t *hm, char* key, char* value) {
 
             if (inserted == 0 && hm->size == hm->hmax) {
                 // dublez capacitatea bucket-urilor
-                hm->buckets = (struct pair**)realloc(hm->buckets, hm->hmax * 2);
-
+                hm->buckets = (struct pair**)realloc(hm->buckets, hm->hmax * 2 * sizeof(struct pair));
+                
                 if (hm->buckets == NULL) {
                     printf("Realloc failed - buckets");
                     exit(12);
                 }
                 hm->hmax *= 2;
+
+                for (int i = hm->size; i < hm->hmax; i++) {
+                    hm->buckets[i] = NULL;
+                }
 
                 for (int i = hm->size; i < hm->hmax; i++) {
                     if (hm->buckets[i] == NULL) {
@@ -184,7 +186,6 @@ void free_hm(struct hashmap_t *hm) {
             free(hm->buckets[i]);
         }
     }
-
     free(hm->buckets);
     free(hm);
 }
