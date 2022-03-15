@@ -151,8 +151,9 @@ int data_preprocessing(struct hashmap_t *hm, FILE *fin, FILE *fout) {
             // strcat(buffer, "\n");
             token = strtok(line, " ");
             token = strtok(NULL, "\n ");
-
+            // printf("%s", token);
             can_write = has_key(hm, token);
+            // printf("%d\n", can_write);
             
 
         } else if (strstr(line, "#ifndef ")) {
@@ -198,6 +199,7 @@ int data_preprocessing(struct hashmap_t *hm, FILE *fin, FILE *fout) {
                 strcat(buffer, " ");
                 token = strtok(NULL, " ");
             }
+            strcat(buffer, "\n");
             
         }        
     }
