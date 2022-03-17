@@ -67,31 +67,35 @@ void define_directive(struct hashmap_t *hm, FILE *fin, char *line) {
     if (line[strlen(line) - 2] != '\\') {
         // nu este define pe mai multe linii
         value = strtok(NULL, "\n");
-
-        for (int i = 0; i < strlen(value); i++) {
-            find_val[n] = value[i];
-            n++;
-            find_val[n] = '\0';
         
-            if (has_key(hm, find_val) == 1) {
-                strcat(buff_value, get(hm, find_val));
+        if (value != NULL) {
+            //  printf("%s\n", value);
+            for (int i = 0; i < strlen(value); i++) {
+                find_val[n] = value[i];
+                n++;
+                find_val[n] = '\0';
+        
+                if (has_key(hm, find_val) == 1) {
+                    strcat(buff_value, get(hm, find_val));
                 
-                memset(find_val, 0, MAX_LEN);
-                n = 0;
-                continue;
-            }
+                    memset(find_val, 0, MAX_LEN);
+                    n = 0;
+                    continue;
+                }
 
-            if (value[i] == ' ' || i == strlen(value) - 1) {
-                strcat(buff_value, find_val);
+                if (value[i] == ' ' || i == strlen(value) - 1) {
+                    strcat(buff_value, find_val);
                 
-                memset(find_val, 0, MAX_LEN);
-                n = 0;
-                continue;
+                    memset(find_val, 0, MAX_LEN);
+                    n = 0;
+                    continue;
+                }
             }
+        } else {
+            value = "";
         }
 
     } else {
-
         value = strtok(NULL, "\\\n");
         value[strlen(value) - 1] = '\0';
         strcpy(buff_value, value);
@@ -116,8 +120,7 @@ void define_directive(struct hashmap_t *hm, FILE *fin, char *line) {
                break;    
             } 
         }
-    }
-        
+    }    
     put(hm, key, buff_value); 
 }
 
@@ -145,7 +148,7 @@ int include_directive(char *line, struct hashmap_t *hm, FILE *fout, char *in_fil
         }
     } else {
         found = 0;
-        // printf("AAAAA\n");
+        
         for (int i = 0; i < n_dirs; i++) {
             memset(path, 0, MAX_LEN);
             strcpy(path, directories[i]);
@@ -191,9 +194,9 @@ int data_preprocessing(struct hashmap_t *hm, FILE *fin, FILE *fout, char *in_fil
     memset(buffer, 0, MAX_LEN);
 
     while (fgets(line, MAX_LEN, fin) != NULL) {
-
         // verific daca pe linie se afla o directiva
         if (strstr(line, "#define ") && can_write == 1) {
+            
             define_directive(hm, fin, line);
         
         } else if (strstr(line, "#undef ")) {
@@ -220,11 +223,9 @@ int data_preprocessing(struct hashmap_t *hm, FILE *fin, FILE *fout, char *in_fil
             token = strtok(line, " ");
             token = strtok(NULL, "\n ");
             can_write = has_key(hm, token);
-            
-            
-
+ 
         } else if (strstr(line, "#ifndef ")) {
-  
+            
             token = strtok(line, " ");
             token = strtok(NULL, "\n");
 
@@ -241,6 +242,7 @@ int data_preprocessing(struct hashmap_t *hm, FILE *fin, FILE *fout, char *in_fil
             strcat(buffer, "\n");
 
         } else if (strstr(line, "#include")) {
+           
             if (include_directive(line, hm, fout, in_file, directories, n_dirs) != 1) {
                 return 12;
             }
@@ -250,21 +252,23 @@ int data_preprocessing(struct hashmap_t *hm, FILE *fin, FILE *fout, char *in_fil
             // caz in care nu am directive
             token = strtok(line, "\n ");
             memset(buffer, 0, MAX_LEN);
-
+            
             while (token != NULL && can_write == 1) {
                 char str[MAX_LEN];
                 int k = 0;
                 memset(str, 0, MAX_LEN);
 
                 for (int i = 0; i < strlen(token); i++) {
-                    str[k] += token[i];
-                    k++;
-                    if (has_key(hm, str) == 1) {
-                        strcpy(str, get(hm, str));
-                        strcat(buffer, str);
-                        memset(str, 0, MAX_LEN);
-                        k = 0;
-                    }  
+                    if (token[i] != ' ' && token[i] != '\t') {
+                        str[k] += token[i];
+                        k++;
+                        if (has_key(hm, str) == 1) {
+                            strcpy(str, get(hm, str));
+                            strcat(buffer, str);
+                            memset(str, 0, MAX_LEN);
+                            k = 0;
+                        }  
+                    }
                 }
 
                 strcat(buffer, str);
@@ -309,6 +313,8 @@ int main(int argc, char* argv[]) {
 
     memset(input_file, 0, MAX_LEN);
     memset(output_file, 0, MAX_LEN);
+
+    // printf("%s\n", strlen(input_file));
 		
     for (int i = 1; i < argc; i++) {
         if (strncmp(argv[i], "-D", 2) == 0) {
@@ -337,7 +343,7 @@ int main(int argc, char* argv[]) {
             }
 
         } else if (strncmp(argv[i], "-o", 2) == 0) {
-
+            
             if (strlen(argv[i]) > 2) {
                // D_flag(hm, argv[i] + 2);
             } else {
@@ -350,7 +356,6 @@ int main(int argc, char* argv[]) {
         } else {
 
             if (strlen(input_file) > 1) {
-                // return 12;
                 strcpy(output_file, argv[i]);
                 cnt_out++;
 
@@ -367,13 +372,13 @@ int main(int argc, char* argv[]) {
 
     if (strlen(input_file) > 1) {
         fin = fopen(input_file, "r");
+   
     } else {
         fin = stdin;
     }
 
     if (fin == NULL) {
         printf("Can't open file - input\n");
-        // free_hm(hm);
         return 12;
     }
 
@@ -385,7 +390,7 @@ int main(int argc, char* argv[]) {
 
     if (fout == NULL) {
         printf("Can't open file - ouput\n");
-        // free_hm(hm);
+        
         return 12;
     }
 
