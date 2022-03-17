@@ -25,6 +25,18 @@ void D_flag(struct hashmap_t *hm, char *arg) {
     put(hm, key, value);
 }
 
+void I_flag(char *arg, char **directories, int *n_dirs) {
+
+    directories[*n_dirs] = (char*)calloc(strlen(arg) + 1, sizeof(char));
+    if (directories[*n_dirs] == NULL) {
+        exit(12);
+    }
+    
+    strcpy(directories[*n_dirs], arg);
+    *n_dirs = *n_dirs + 1;
+    
+}
+
 int check_if_cond(struct hashmap_t *hm, char* cond) {
 
     if (strcmp(cond, "0") == 0) {
@@ -44,6 +56,7 @@ void define_directive(struct hashmap_t *hm, FILE *fin, char *line) {
     char buff_value[MAX_LEN] = {0};
     char find_val[MAX_LEN] = {0};
     int n = 0;
+    int n_dirs = 0;
     strcpy(tmp_line, line);
     token = strtok(tmp_line, " ");
     key = strtok(NULL, " ");
@@ -91,8 +104,7 @@ void define_directive(struct hashmap_t *hm, FILE *fin, char *line) {
                 if (line[i] != ' ' && line[i] != '\t' && line[i] != '\\' && line[i] != '\n') {
                     
                     find_val[n] = line[i];
-                    n++;
-                    
+                    n++;                    
                 }
                 
             }
@@ -107,10 +119,67 @@ void define_directive(struct hashmap_t *hm, FILE *fin, char *line) {
     }
         
     put(hm, key, buff_value); 
-
 }
 
-int data_preprocessing(struct hashmap_t *hm, FILE *fin, FILE *fout) {
+int include_directive(char *line, struct hashmap_t *hm, FILE *fout, char *in_file, 
+                        char **directories, int n_dirs) {
+    char *header, path[MAX_LEN];
+    FILE *f_header;
+    int r, found;
+    header = strtok(line, "\"");
+    header = strtok(NULL, "\"");
+
+    // iau fisierul .h
+    char *ret = strrchr(in_file, '/');
+
+    // iau directorul curent 
+    in_file[strlen(in_file) - strlen(ret) + 1] = '\0';
+    strcat(in_file, header);
+
+    f_header = fopen(in_file, "r");
+    if (f_header != NULL) {
+        r = data_preprocessing(hm, f_header, fout, in_file, directories, n_dirs);
+        
+        if (r != 1) {
+            return 12;
+        }
+    } else {
+        found = 0;
+        // printf("AAAAA\n");
+        for (int i = 0; i < n_dirs; i++) {
+            memset(path, 0, MAX_LEN);
+            strcpy(path, directories[i]);
+            strcat(path, ret);
+
+            f_header = fopen(path, "r");
+            if (f_header == NULL) {
+                return ERROR_CODE;
+            }
+
+            r = data_preprocessing(hm, f_header, fout, path, directories, n_dirs);
+
+            if (r != 1) {
+                return ERROR_CODE;
+            } else {
+                found = 1;
+                break;
+            }
+
+        }
+
+        if (found == 0) {
+            return ERROR_CODE;
+        }
+
+    }
+
+    fclose(f_header);
+
+    return 1;
+}
+
+int data_preprocessing(struct hashmap_t *hm, FILE *fin, FILE *fout, char *in_file,
+                        char **directories, int n_dirs) {
     
     char line[MAX_LEN];
     int line_len = 0;
@@ -148,16 +217,14 @@ int data_preprocessing(struct hashmap_t *hm, FILE *fin, FILE *fout) {
             can_write = check_if_cond(hm, token);
 
         } else if (strstr(line, "#ifdef ")) {
-            // strcat(buffer, "\n");
             token = strtok(line, " ");
             token = strtok(NULL, "\n ");
-            // printf("%s", token);
             can_write = has_key(hm, token);
-            // printf("%d\n", can_write);
+            
             
 
         } else if (strstr(line, "#ifndef ")) {
-            // strcat(buffer, "\n");
+  
             token = strtok(line, " ");
             token = strtok(NULL, "\n");
 
@@ -172,6 +239,12 @@ int data_preprocessing(struct hashmap_t *hm, FILE *fin, FILE *fout) {
         } else if (strstr(line, "#endif")) {
             can_write = 1;
             strcat(buffer, "\n");
+
+        } else if (strstr(line, "#include")) {
+            if (include_directive(line, hm, fout, in_file, directories, n_dirs) != 1) {
+                return 12;
+            }
+                
 
         } else {
             // caz in care nu am directive
@@ -199,11 +272,10 @@ int data_preprocessing(struct hashmap_t *hm, FILE *fin, FILE *fout) {
                 strcat(buffer, " ");
                 token = strtok(NULL, " ");
             }
-            // strcat(buffer, "\n");
+            
             fprintf(fout, "%s\n", buffer);
         }        
     }
-    // fprintf(fout, "%s\n", buffer);
 
     return 1;
 }
@@ -215,7 +287,9 @@ int main(int argc, char* argv[]) {
 
     char input_file[MAX_LEN];
     char output_file[MAX_LEN];
+    char **directories;
 
+    int n_dirs = 0;
     int cnt_in = 0;
     int cnt_out = 0;
 
@@ -227,6 +301,11 @@ int main(int argc, char* argv[]) {
     }
     
     init_hm(hm, HMAX);
+    directories = (char **)malloc(MAX_LEN * sizeof(char*));
+    if (directories == NULL) {
+        printf("Malloc failed\n");
+        exit(12);
+    }
 
     memset(input_file, 0, MAX_LEN);
     memset(output_file, 0, MAX_LEN);
@@ -244,11 +323,16 @@ int main(int argc, char* argv[]) {
             }
 
         } else if (strncmp(argv[i], "-I", 2) == 0) {
-
+                
             if (strlen(argv[i]) > 2) {
-               // D_flag(hm, argv[i] + 2);
+               
+                memmove(argv[i], argv[i] + 2, strlen(argv[i]));
+                I_flag(argv[i], directories, &n_dirs);
+
             } else {
-                //D_flag(hm, argv[i + 1]);
+              
+                I_flag(argv[i + 1], directories, &n_dirs);
+                // printf("AAAA\n");
                 i++;
             }
 
@@ -265,7 +349,7 @@ int main(int argc, char* argv[]) {
 
         } else {
 
-            if (input_file[0] != '\0') {
+            if (strlen(input_file) > 1) {
                 // return 12;
                 strcpy(output_file, argv[i]);
                 cnt_out++;
@@ -277,8 +361,8 @@ int main(int argc, char* argv[]) {
        }
     }
 
-    if (cnt_in > 1 || cnt_out > 1) {
-        return -1;
+    if (cnt_in > 2 || cnt_out > 1) {
+        return 12;
     }
 
     if (strlen(input_file) > 1) {
@@ -289,8 +373,8 @@ int main(int argc, char* argv[]) {
 
     if (fin == NULL) {
         printf("Can't open file - input\n");
-        free_hm(hm);
-        return -1;
+        // free_hm(hm);
+        return 12;
     }
 
     if (strlen(output_file) > 1) {
@@ -301,12 +385,12 @@ int main(int argc, char* argv[]) {
 
     if (fout == NULL) {
         printf("Can't open file - ouput\n");
-        free_hm(hm);
-        return -1;
+        // free_hm(hm);
+        return 12;
     }
 
 
-    int r = data_preprocessing(hm, fin, fout);
+    int r = data_preprocessing(hm, fin, fout, input_file, directories, n_dirs);
 
     if (r != 1) {
         return ERROR_CODE;
@@ -320,6 +404,11 @@ int main(int argc, char* argv[]) {
     if (fout != NULL) {
         fclose(fout);
     }
+
+    for (int i = 0; i < n_dirs; i++) {
+        free(directories[i]);
+    }
+    free(directories);
 
     free_hm(hm);
 
