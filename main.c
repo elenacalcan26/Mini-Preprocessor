@@ -67,15 +67,18 @@ void define_directive(struct hashmap_t *hm, FILE *fin, char *line) {
     if (line[strlen(line) - 2] != '\\') {
         // nu este define pe mai multe linii
         value = strtok(NULL, "\n");
+
         
         if (value != NULL) {
-            //  printf("%s\n", value);
+            
             for (int i = 0; i < strlen(value); i++) {
-                find_val[n] = value[i];
-                n++;
-                find_val[n] = '\0';
+                if (value[i] != ' ') {
+                    find_val[n] = value[i];
+                    n++;
+                    find_val[n] = '\0';
+                } 
         
-                if (has_key(hm, find_val) == 1) {
+                if (has_key(hm, find_val) == 1 && i < strlen(value - 1) && value[i + 1] == ' ') {
                     strcat(buff_value, get(hm, find_val));
                 
                     memset(find_val, 0, MAX_LEN);
@@ -84,7 +87,12 @@ void define_directive(struct hashmap_t *hm, FILE *fin, char *line) {
                 }
 
                 if (value[i] == ' ' || i == strlen(value) - 1) {
-                    strcat(buff_value, find_val);
+
+                    if (has_key(hm, find_val) == 1) {
+                        strcat(buff_value, get(hm, find_val));
+                    } else {
+                        strcat(buff_value, find_val);
+                    }
                 
                     memset(find_val, 0, MAX_LEN);
                     n = 0;
@@ -313,8 +321,6 @@ int main(int argc, char* argv[]) {
 
     memset(input_file, 0, MAX_LEN);
     memset(output_file, 0, MAX_LEN);
-
-    // printf("%s\n", strlen(input_file));
 		
     for (int i = 1; i < argc; i++) {
         if (strncmp(argv[i], "-D", 2) == 0) {
@@ -338,7 +344,7 @@ int main(int argc, char* argv[]) {
             } else {
               
                 I_flag(argv[i + 1], directories, &n_dirs);
-                // printf("AAAA\n");
+                
                 i++;
             }
 

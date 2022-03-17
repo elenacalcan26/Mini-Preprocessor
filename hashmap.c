@@ -39,14 +39,14 @@ void put(struct hashmap_t *hm, char* key, char* value) {
     new_pair->key = calloc(strlen(key) + 1, sizeof(char));
     
     if (new_pair->key == NULL) {
-        printf("Malloc failed - key");
+        printf("Calloc failed - key");
         exit(12);
     }
 
     new_pair->value = calloc(strlen(value) + 1, sizeof(char));
 
     if (new_pair->value == NULL) {
-        printf("Malloc failed - value");
+        printf("Calloc failed - value");
         exit(12);
     }
 
@@ -67,7 +67,7 @@ void put(struct hashmap_t *hm, char* key, char* value) {
             int inserted = 0;
 
             // se cauta primul bucket gol in care se insereaza perechea
-
+    
             for (int i = index; i < hm->hmax; i++) {
                 if (hm->buckets[i] == NULL) {
                     hm->buckets[i] = new_pair;
@@ -136,7 +136,6 @@ int has_key(struct hashmap_t *hm, char* key) {
 }
 
 char* get(struct hashmap_t *hm, char* key) {
-
     int index = hash(key) % hm->hmax;
 
     for (int i = index; i < hm->hmax; i++) {
