@@ -176,7 +176,7 @@ int data_preprocessing(struct hashmap_t *hm, FILE *fin, FILE *fout) {
         } else {
             // caz in care nu am directive
             token = strtok(line, "\n ");
-            
+            memset(buffer, 0, MAX_LEN);
 
             while (token != NULL && can_write == 1) {
                 char str[MAX_LEN];
@@ -199,11 +199,11 @@ int data_preprocessing(struct hashmap_t *hm, FILE *fin, FILE *fout) {
                 strcat(buffer, " ");
                 token = strtok(NULL, " ");
             }
-            strcat(buffer, "\n");
-            
+            // strcat(buffer, "\n");
+            fprintf(fout, "%s\n", buffer);
         }        
     }
-    fprintf(fout, "%s\n", buffer);
+    // fprintf(fout, "%s\n", buffer);
 
     return 1;
 }
@@ -215,6 +215,9 @@ int main(int argc, char* argv[]) {
 
     char input_file[MAX_LEN];
     char output_file[MAX_LEN];
+
+    int cnt_in = 0;
+    int cnt_out = 0;
 
     struct hashmap_t *hm = malloc(sizeof(struct hashmap_t));
 
@@ -255,16 +258,27 @@ int main(int argc, char* argv[]) {
                // D_flag(hm, argv[i] + 2);
             } else {
                // D_flag(hm, argv[i + 1]);
+               strcpy(output_file, argv[i + 1]);
                 i++;
             }
+            cnt_out++;
+
         } else {
 
-            if (strlen(input_file) > 1) {
-                return 1;
+            if (input_file[0] != '\0') {
+                // return 12;
+                strcpy(output_file, argv[i]);
+                cnt_out++;
+
             } else {
                 strcpy(input_file, argv[i]);
+                cnt_in++;
             }
        }
+    }
+
+    if (cnt_in > 1 || cnt_out > 1) {
+        return -1;
     }
 
     if (strlen(input_file) > 1) {
@@ -276,7 +290,7 @@ int main(int argc, char* argv[]) {
     if (fin == NULL) {
         printf("Can't open file - input\n");
         free_hm(hm);
-        return 1;
+        return -1;
     }
 
     if (strlen(output_file) > 1) {
@@ -288,7 +302,7 @@ int main(int argc, char* argv[]) {
     if (fout == NULL) {
         printf("Can't open file - ouput\n");
         free_hm(hm);
-        return 1;
+        return -1;
     }
 
 
