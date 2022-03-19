@@ -12,6 +12,8 @@ unsigned int hash(unsigned char *str) {
 }
 
 void init_hm(struct hashmap_t *hm, int hmax) {
+	int i;
+
     hm->hmax = hmax;
     hm->size = 0;
     hm->buckets = (struct pair**)malloc(hmax * sizeof(struct pair*));
@@ -22,14 +24,18 @@ void init_hm(struct hashmap_t *hm, int hmax) {
         exit(12);
     }
 
-    for (int i = 0; i < hm->hmax; i++) {
+    for (i = 0; i < hm->hmax; i++) {
         hm->buckets[i] = NULL;
     }
 }
 
 void put(struct hashmap_t *hm, char* key, char* value) {
-    int index = hash(key) % hm->hmax;
-    struct pair *new_pair = (struct pair*)malloc(sizeof(struct pair));
+    int i;
+	int index;
+	struct pair *new_pair;
+
+	index = hash(key) % hm->hmax;
+    new_pair = (struct pair*)malloc(sizeof(struct pair));
 
     if (new_pair == NULL) {
         printf("Malloc failed - new pair");
@@ -68,7 +74,7 @@ void put(struct hashmap_t *hm, char* key, char* value) {
 
             // se cauta primul bucket gol in care se insereaza perechea
     
-            for (int i = index; i < hm->hmax; i++) {
+            for (i = index; i < hm->hmax; i++) {
                 if (hm->buckets[i] == NULL) {
                     hm->buckets[i] = new_pair;
                     inserted = 1;
@@ -77,7 +83,7 @@ void put(struct hashmap_t *hm, char* key, char* value) {
             }
 
             if (inserted == 0) {
-                for (int i = 0; i < index; i++) {
+                for (i = 0; i < index; i++) {
                     if (hm->buckets[i] == NULL) {
                         hm->buckets[i] = new_pair;
                         inserted = 1;
@@ -96,11 +102,11 @@ void put(struct hashmap_t *hm, char* key, char* value) {
                 }
                 hm->hmax *= 2;
 
-                for (int i = hm->size; i < hm->hmax; i++) {
+                for (i = hm->size; i < hm->hmax; i++) {
                     hm->buckets[i] = NULL;
                 }
 
-                for (int i = hm->size; i < hm->hmax; i++) {
+                for (i = hm->size; i < hm->hmax; i++) {
                     if (hm->buckets[i] == NULL) {
                         hm->buckets[i] = new_pair;
                         inserted = 1;
@@ -117,16 +123,17 @@ void put(struct hashmap_t *hm, char* key, char* value) {
 }
 
 int has_key(struct hashmap_t *hm, char* key) {
+	int i;
 
     int index = hash(key) % hm->hmax;
 
-    for (int i = index; i < hm->hmax; i++) {
+    for (i = index; i < hm->hmax; i++) {
         if (hm->buckets[i] != NULL && strcmp(key, hm->buckets[i]->key) == 0) {
             return 1;
         }
     }
 
-    for (int i = 0; i < index; i++) {
+    for (i = 0; i < index; i++) {
         if (hm->buckets[i] != NULL && strcmp(key, hm->buckets[i]->key) == 0) {
             return 1;
         }
@@ -136,15 +143,17 @@ int has_key(struct hashmap_t *hm, char* key) {
 }
 
 char* get(struct hashmap_t *hm, char* key) {
-    int index = hash(key) % hm->hmax;
+    int i;
+	int index; 
+	index = hash(key) % hm->hmax;
 
-    for (int i = index; i < hm->hmax; i++) {
+    for (i = index; i < hm->hmax; i++) {
         if (hm->buckets[i] != NULL && strcmp(key, hm->buckets[i]->key) == 0) {
             return hm->buckets[i]->value;
         }
     }
 
-    for (int i = 0; i < index; i++) {
+    for (i = 0; i < index; i++) {
         if (hm->buckets[i] != NULL && strcmp(key, hm->buckets[i]->key) == 0) {
             return hm->buckets[i]->value;
         }
@@ -154,9 +163,11 @@ char* get(struct hashmap_t *hm, char* key) {
 }
 
 void remove_pair(struct hashmap_t *hm, char *key) {
-    int index = hash(key) % hm->hmax;
+    int i;
+	int index;
+	index = hash(key) % hm->hmax;
 
-    for (int i = index; i < hm->hmax; i++) {
+    for (i = index; i < hm->hmax; i++) {
         if (hm->buckets[i] != NULL && strcmp(key, hm->buckets[i]->key) == 0) {
             free(hm->buckets[i]->key);
             free(hm->buckets[i]->value);
@@ -166,7 +177,7 @@ void remove_pair(struct hashmap_t *hm, char *key) {
         }
     }
 
-    for (int i = 0; i < index; i++) {
+    for (i = 0; i < index; i++) {
         if (hm->buckets[i] != NULL && strcmp(key, hm->buckets[i]->key) == 0) {
             free(hm->buckets[i]->key);
             free(hm->buckets[i]->value);
@@ -178,7 +189,9 @@ void remove_pair(struct hashmap_t *hm, char *key) {
 }
 
 void free_hm(struct hashmap_t *hm) {
-    for (int i = 0; i < hm->hmax; i++) {
+    int i;
+	
+	for (i = 0; i < hm->hmax; i++) {
         if (hm->buckets[i] != NULL) {
             free(hm->buckets[i]->key);
             free(hm->buckets[i]->value);
