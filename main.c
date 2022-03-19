@@ -89,7 +89,7 @@ void define_directive(struct hashmap_t *hm, FILE *fin, char *line)
 				if (value[i] == ' ' || i == strlen(value) - 1) {
 					if (has_key(hm, find_val) == 1)
 						strcat(buff_value, get(hm, find_val));
-					else 
+					else
 						strcat(buff_value, find_val);
 					
 					memset(find_val, 0, MAX_LEN);
@@ -97,7 +97,7 @@ void define_directive(struct hashmap_t *hm, FILE *fin, char *line)
 					continue;
 				}
 			}
-		} else 
+		} else
 			value = "";
 		
 	} else {
@@ -183,7 +183,8 @@ int include_directive(char *line, struct hashmap_t *hm, FILE *fout,
 	return 1;
 }
 
-void process_line(char *line, struct hashmap_t *hm, FILE *fout) {
+void process_line(char *line, struct hashmap_t *hm, FILE *fout) 
+{
 	char *token;
 	char buffer[MAX_LEN], str[MAX_LEN];
 	int n, i;
@@ -360,7 +361,7 @@ int main(int argc, char *argv[])
 	if (cnt_in > 2 || cnt_out > 1)
 		return 12;
 
-	if (strlen(input_file) > 1) 
+	if (strlen(input_file) > 1)
 		fin = fopen(input_file, "r");
 	else
 		fin = stdin;
@@ -370,12 +371,11 @@ int main(int argc, char *argv[])
 		return 12;
 	}
 
-	if (strlen(output_file) > 1) 
+	if (strlen(output_file) > 1)
 		fout = fopen(output_file, "w");
-	else 
+	else
 		fout = stdout;
 	
-
 	if (fout == NULL) {
 		printf("Can't open file - ouput\n");
 		return 12;
