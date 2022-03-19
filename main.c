@@ -25,26 +25,23 @@ void D_flag(struct hashmap_t *hm, char *arg) {
 }
 
 void I_flag(char *arg, char **directories, int *n_dirs) {
-
   directories[*n_dirs] = (char *)calloc(strlen(arg) + 1, sizeof(char));
-  if (directories[*n_dirs] == NULL) {
-	exit(12);
-  }
 
+  if (directories[*n_dirs] == NULL) 
+	exit(12);
+  
   strcpy(directories[*n_dirs], arg);
   *n_dirs = *n_dirs + 1;
 }
 
 int check_if_cond(struct hashmap_t *hm, char *cond) {
 
-  if (strcmp(cond, "0") == 0) {
+  if (strcmp(cond, "0") == 0)
 	return 0;
-  }
 
-  if (has_key(hm, cond) == 1 && strcmp(get(hm, cond), "0") == 0) {
+  if (has_key(hm, cond) == 1 && strcmp(get(hm, cond), "0") == 0)
 	return 0;
-  }
-
+  
   return 1;
 }
 
@@ -122,9 +119,9 @@ void define_directive(struct hashmap_t *hm, FILE *fin, char *line) {
 
 	  strcat(buff_value, find_val);
 
-	  if (line[strlen(line) - 2] != '\\' && strlen(find_val) > 1) {
+	  if (line[strlen(line) - 2] != '\\' && strlen(find_val) > 1)
 		break;
-	  }
+	  
 	}
   }
   put(hm, key, buff_value);
@@ -149,9 +146,9 @@ int include_directive(char *line, struct hashmap_t *hm, FILE *fout,
   if (f_header != NULL) {
 	r = data_preprocessing(hm, f_header, fout, in_file, directories, n_dirs);
 
-	if (r != 1) {
+	if (r != 1)
 	  return 12;
-	}
+	
   } else {
 	found = 0;
 
@@ -161,9 +158,9 @@ int include_directive(char *line, struct hashmap_t *hm, FILE *fout,
 	  strcat(path, ret);
 
 	  f_header = fopen(path, "r");
-	  if (f_header == NULL) {
+	  if (f_header == NULL) 
 		return ERROR_CODE;
-	  }
+	  
 
 	  r = data_preprocessing(hm, f_header, fout, path, directories, n_dirs);
 
@@ -175,9 +172,9 @@ int include_directive(char *line, struct hashmap_t *hm, FILE *fout,
 	  }
 	}
 
-	if (found == 0) {
+	if (found == 0) 
 	  return ERROR_CODE;
-	}
+	
   }
 
   fclose(f_header);
@@ -237,9 +234,9 @@ int data_preprocessing(struct hashmap_t *hm, FILE *fin, FILE *fout,
 	} else if (strstr(line, "#include")) {
 
 	  if (include_directive(line, hm, fout, in_file, directories, n_dirs) !=
-		  1) {
+		  1) 
 		return 12;
-	  }
+	  
 	} else {
 	  // caz in care nu am directive
 	  token = strtok(line, "\n ");
@@ -353,10 +350,9 @@ int main(int argc, char *argv[]) {
 	}
   }
 
-  if (cnt_in > 2 || cnt_out > 1) {
+  if (cnt_in > 2 || cnt_out > 1) 
 	return 12;
-  }
-
+  
   if (strlen(input_file) > 1) {
 	fin = fopen(input_file, "r");
   } else {
@@ -376,27 +372,23 @@ int main(int argc, char *argv[]) {
 
   if (fout == NULL) {
 	printf("Can't open file - ouput\n");
-
 	return 12;
   }
 
   r = data_preprocessing(hm, fin, fout, input_file, directories, n_dirs);
 
-  if (r != 1) {
+  if (r != 1)
 	return ERROR_CODE;
-  }
 
-  if (fin != NULL) {
+  if (fin != NULL) 
 	fclose(fin);
-  }
 
-  if (fout != NULL) {
+  if (fout != NULL) 
 	fclose(fout);
-  }
-
-  for (i = 0; i < n_dirs; i++) {
+  
+  for (i = 0; i < n_dirs; i++)
 	free(directories[i]);
-  }
+  
   free(directories);
 
   free_hm(hm);
