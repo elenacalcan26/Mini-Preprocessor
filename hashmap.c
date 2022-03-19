@@ -142,8 +142,9 @@ char *get(struct hashmap_t *hm, char *key)
 {
 	int i;
 	int index;
-	index = hash(key) % hm->hmax;
 	
+	index = hash(key) % hm->hmax;
+
 	for (i = index; i < hm->hmax; i++)
 		if (hm->buckets[i] != NULL && strcmp(key, hm->buckets[i]->key) == 0)
 			return hm->buckets[i]->value;

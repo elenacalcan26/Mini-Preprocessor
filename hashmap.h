@@ -5,14 +5,12 @@
 #include <stdlib.h>
 #include <string.h>
 
-struct pair
-{
+struct pair {
 	char *key;
 	char *value;
 };
 
-struct hashmap_t
-{
+struct hashmap_t {
 	struct pair **buckets;
 	int size /* numar total de noduri existente */;
 	int hmax; /* numar de bucket-uri*/
