@@ -91,7 +91,7 @@ void define_directive(struct hashmap_t *hm, FILE *fin, char *line)
 						strcat(buff_value, get(hm, find_val));
 					else
 						strcat(buff_value, find_val);
-					
+					 
 					memset(find_val, 0, MAX_LEN);
 					n = 0;
 					continue;
