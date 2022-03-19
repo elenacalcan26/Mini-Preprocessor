@@ -87,12 +87,11 @@ void define_directive(struct hashmap_t *hm, FILE *fin, char *line)
 				}
 
 				if (value[i] == ' ' || i == strlen(value) - 1) {
-					if (has_key(hm, find_val) == 1) 
+					if (has_key(hm, find_val) == 1)
 						strcat(buff_value, get(hm, find_val));
 					else 
 						strcat(buff_value, find_val);
 					
-
 					memset(find_val, 0, MAX_LEN);
 					n = 0;
 					continue;
@@ -135,6 +134,7 @@ int include_directive(char *line, struct hashmap_t *hm, FILE *fout,
 	char *header, path[MAX_LEN], *ret;
 	FILE *f_header;
 	int r, found, i;
+
 	header = strtok(line, "\"");
 	header = strtok(NULL, "\"");
 
@@ -181,6 +181,38 @@ int include_directive(char *line, struct hashmap_t *hm, FILE *fout,
 	fclose(f_header);
 
 	return 1;
+}
+
+void process_line(char *line, struct hashmap_t *hm, FILE *fout) {
+	char *token;
+	char buffer[MAX_LEN], str[MAX_LEN];
+	int n, i;
+	
+	token = strtok(line, "\n ");
+	memset(buffer, 0, MAX_LEN);
+
+	while (token != NULL) {
+		memset(str, 0, MAX_LEN);
+		n = 0;
+
+		for (i = 0; i < strlen(token); i++) {
+			if (token[i] != ' ' && token[i] != '\t') {
+				str[n] += token[i];
+				n++;
+				if (has_key(hm, str) == 1) {
+					strcat(buffer, get(hm, str));
+					memset(str, 0, MAX_LEN);
+					n = 0;
+				}
+			}
+		}
+
+		strcat(buffer, str);
+		strcat(buffer, " ");
+		token = strtok(NULL, " ");
+	}
+
+	fprintf(fout, "%s\n", buffer);
 }
 
 int data_preprocessing(struct hashmap_t *hm, FILE *fin, FILE *fout,
@@ -240,32 +272,10 @@ int data_preprocessing(struct hashmap_t *hm, FILE *fin, FILE *fout,
 		
 		} else {
 			// caz in care nu am directive
-			token = strtok(line, "\n ");
-			memset(buffer, 0, MAX_LEN);
 
-			while (token != NULL && can_write == 1) {
-				char str[MAX_LEN];
-				int k = 0;
-				memset(str, 0, MAX_LEN);
-
-				for (i = 0; i < strlen(token); i++) {
-					if (token[i] != ' ' && token[i] != '\t') {
-						str[k] += token[i];
-						k++;
-						if (has_key(hm, str) == 1) {
-							strcpy(str, get(hm, str));
-							strcat(buffer, str);
-							memset(str, 0, MAX_LEN);
-							k = 0;
-						}
-					}
-				}
-				strcat(buffer, str);
-				strcat(buffer, " ");
-				token = strtok(NULL, " ");
-			}
-
-			fprintf(fout, "%s\n", buffer);
+			if (can_write == 1)
+				process_line(line, hm, fout);
+			
 		}
 	}
 
@@ -314,8 +324,7 @@ int main(int argc, char *argv[])
 				D_flag(hm, argv[i + 1]);
 				i++;
 			}
-		}
-		else if (strncmp(argv[i], "-I", 2) == 0) {
+		} else if (strncmp(argv[i], "-I", 2) == 0) {
 
 			if (strlen(argv[i]) > 2) {
 
@@ -326,8 +335,7 @@ int main(int argc, char *argv[])
 				I_flag(argv[i + 1], directories, &n_dirs);
 				i++;
 			}
-		}
-		else if (strncmp(argv[i], "-o", 2) == 0) {
+		} else if (strncmp(argv[i], "-o", 2) == 0) {
 
 			if (strlen(argv[i]) > 2) {
 				memmove(argv[i], argv[i] + 2, strlen(argv[i]));
