@@ -60,8 +60,7 @@ void put(struct hashmap_t *hm, char *key, char *value)
 	strcpy(new_pair->key, key);
 	strcpy(new_pair->value, value);
 
-	if (hm->buckets[index] == NULL)
-	{
+	if (hm->buckets[index] == NULL) {
 		hm->buckets[index] = new_pair;
 	} else {
 
@@ -144,7 +143,7 @@ char *get(struct hashmap_t *hm, char *key)
 	int i;
 	int index;
 	index = hash(key) % hm->hmax;
-
+	
 	for (i = index; i < hm->hmax; i++)
 		if (hm->buckets[i] != NULL && strcmp(key, hm->buckets[i]->key) == 0)
 			return hm->buckets[i]->value;

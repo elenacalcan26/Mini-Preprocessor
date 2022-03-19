@@ -5,15 +5,17 @@
 #include <stdlib.h>
 #include <string.h>
 
-struct pair {
-  char *key;
-  char *value;
+struct pair
+{
+	char *key;
+	char *value;
 };
 
-struct hashmap_t {
-  struct pair **buckets;
-  int size /* numar total de noduri existente */;
-  int hmax; /* numar de bucket-uri*/
+struct hashmap_t
+{
+	struct pair **buckets;
+	int size /* numar total de noduri existente */;
+	int hmax; /* numar de bucket-uri*/
 };
 
 unsigned int hash_function_string(char *str);
