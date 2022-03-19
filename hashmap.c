@@ -96,7 +96,8 @@ void put(struct hashmap_t *hm, char *key, char *value)
 			if (inserted == 0 && hm->size == hm->hmax) {
 				// dublez capacitatea bucket-urilor
 				hm->buckets = (struct pair **)realloc(
-					hm->buckets, hm->hmax * 2 * sizeof(struct pair));
+					hm->buckets,
+					hm->hmax * 2 * sizeof(struct pair));
 
 				if (hm->buckets == NULL) {
 					printf("Realloc failed - buckets");
@@ -128,11 +129,13 @@ int has_key(struct hashmap_t *hm, char *key)
 	int index = hash(key) % hm->hmax;
 
 	for (i = index; i < hm->hmax; i++)
-		if (hm->buckets[i] != NULL && strcmp(key, hm->buckets[i]->key) == 0)
+		if (hm->buckets[i] != NULL &&
+			strcmp(key, hm->buckets[i]->key) == 0)
 			return 1;
 
 	for (i = 0; i < index; i++)
-		if (hm->buckets[i] != NULL && strcmp(key, hm->buckets[i]->key) == 0)
+		if (hm->buckets[i] != NULL &&
+			strcmp(key, hm->buckets[i]->key) == 0)
 			return 1;
 
 	return 0;
@@ -146,11 +149,13 @@ char *get(struct hashmap_t *hm, char *key)
 	index = hash(key) % hm->hmax;
 
 	for (i = index; i < hm->hmax; i++)
-		if (hm->buckets[i] != NULL && strcmp(key, hm->buckets[i]->key) == 0)
+		if (hm->buckets[i] != NULL &&
+			strcmp(key, hm->buckets[i]->key) == 0)
 			return hm->buckets[i]->value;
 
 	for (i = 0; i < index; i++)
-		if (hm->buckets[i] != NULL && strcmp(key, hm->buckets[i]->key) == 0)
+		if (hm->buckets[i] != NULL &&
+			strcmp(key, hm->buckets[i]->key) == 0)
 			return hm->buckets[i]->value;
 
 	return NULL;
@@ -160,11 +165,13 @@ void remove_pair(struct hashmap_t *hm, char *key)
 {
 	int i;
 	int index;
-	
+
 	index = hash(key) % hm->hmax;
 
 	for (i = index; i < hm->hmax; i++) {
-		if (hm->buckets[i] != NULL && strcmp(key, hm->buckets[i]->key) == 0) {
+		if (hm->buckets[i] != NULL &&
+			strcmp(key, hm->buckets[i]->key) == 0) {
+
 			free(hm->buckets[i]->key);
 			free(hm->buckets[i]->value);
 			free(hm->buckets[i]);
@@ -174,7 +181,9 @@ void remove_pair(struct hashmap_t *hm, char *key)
 	}
 
 	for (i = 0; i < index; i++) {
-		if (hm->buckets[i] != NULL && strcmp(key, hm->buckets[i]->key) == 0) {
+		if (hm->buckets[i] != NULL &&
+			strcmp(key, hm->buckets[i]->key) == 0) {
+
 			free(hm->buckets[i]->key);
 			free(hm->buckets[i]->value);
 			free(hm->buckets[i]);

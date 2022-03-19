@@ -77,8 +77,10 @@ void define_directive(struct hashmap_t *hm, FILE *fin, char *line)
 					find_val[n] = '\0';
 				}
 
-				if (has_key(hm, find_val) == 1 && i < strlen(value - 1) &&
+				if (has_key(hm, find_val) == 1 &&
+					i < strlen(value - 1) &&
 					value[i + 1] == ' ') {
+
 					strcat(buff_value, get(hm, find_val));
 
 					memset(find_val, 0, MAX_LEN);
@@ -88,7 +90,9 @@ void define_directive(struct hashmap_t *hm, FILE *fin, char *line)
 
 				if (value[i] == ' ' || i == strlen(value) - 1) {
 					if (has_key(hm, find_val) == 1)
-						strcat(buff_value, get(hm, find_val));
+						strcat(buff_value,
+						get(hm, find_val));
+
 					else
 						strcat(buff_value, find_val);
 
@@ -110,8 +114,9 @@ void define_directive(struct hashmap_t *hm, FILE *fin, char *line)
 			n = 0;
 
 			for (i = 0; i < strlen(line); i++) {
-				if (line[i] != ' ' && line[i] != '\t' && line[i] != '\\' &&
-					line[i] != '\n') {
+
+				if (line[i] != ' ' && line[i] != '\t' &&
+					line[i] != '\\' && line[i] != '\n') {
 
 					find_val[n] = line[i];
 					n++;
@@ -121,7 +126,9 @@ void define_directive(struct hashmap_t *hm, FILE *fin, char *line)
 
 			strcat(buff_value, find_val);
 
-			if (line[strlen(line) - 2] != '\\' && strlen(find_val) > 1)
+			if (line[strlen(line) - 2] != '\\' &&
+				strlen(find_val) > 1)
+
 				break;
 		}
 	}
@@ -129,7 +136,8 @@ void define_directive(struct hashmap_t *hm, FILE *fin, char *line)
 }
 
 int include_directive(char *line, struct hashmap_t *hm, FILE *fout,
-					  char *in_file, char **directories, int n_dirs)
+					  char *in_file, char **directories,
+					  int n_dirs)
 {
 	char *header, path[MAX_LEN], *ret;
 	FILE *f_header;
@@ -147,7 +155,8 @@ int include_directive(char *line, struct hashmap_t *hm, FILE *fout,
 
 	f_header = fopen(in_file, "r");
 	if (f_header != NULL) {
-		r = data_preprocessing(hm, f_header, fout, in_file, directories, n_dirs);
+		r = data_preprocessing(hm, f_header, fout, in_file,
+			directories, n_dirs);
 
 		if (r != 1)
 			return 12;
@@ -164,7 +173,8 @@ int include_directive(char *line, struct hashmap_t *hm, FILE *fout,
 			if (f_header == NULL)
 				return ERROR_CODE;
 
-			r = data_preprocessing(hm, f_header, fout, path, directories, n_dirs);
+			r = data_preprocessing(hm, f_header, fout, path,
+				directories, n_dirs);
 
 			if (r != 1)
 				return ERROR_CODE;
@@ -217,7 +227,8 @@ void process_line(char *line, struct hashmap_t *hm, FILE *fout)
 }
 
 int data_preprocessing(struct hashmap_t *hm, FILE *fin, FILE *fout,
-					   char *in_file, char **directories, int n_dirs)
+					   char *in_file, char **directories,
+					   int n_dirs)
 {
 
 	char line[MAX_LEN];
@@ -268,7 +279,10 @@ int data_preprocessing(struct hashmap_t *hm, FILE *fin, FILE *fout,
 			strcat(buffer, "\n");
 		} else if (strstr(line, "#include")) {
 
-			if (include_directive(line, hm, fout, in_file, directories, n_dirs) != 1)
+			if (include_directive(
+				line, hm, fout, in_file, directories, n_dirs) !=
+				1)
+
 				return 12;
 
 		} else {
