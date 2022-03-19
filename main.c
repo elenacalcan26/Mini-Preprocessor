@@ -91,7 +91,7 @@ void define_directive(struct hashmap_t *hm, FILE *fin, char *line)
 						strcat(buff_value, get(hm, find_val));
 					else
 						strcat(buff_value, find_val);
-					 
+
 					memset(find_val, 0, MAX_LEN);
 					n = 0;
 					continue;
@@ -99,7 +99,7 @@ void define_directive(struct hashmap_t *hm, FILE *fin, char *line)
 			}
 		} else
 			value = "";
-		
+
 	} else {
 		value = strtok(NULL, "\\\n");
 		value[strlen(value) - 1] = '\0';
@@ -151,7 +151,7 @@ int include_directive(char *line, struct hashmap_t *hm, FILE *fout,
 
 		if (r != 1)
 			return 12;
-	
+
 	} else {
 		found = 0;
 
@@ -168,10 +168,10 @@ int include_directive(char *line, struct hashmap_t *hm, FILE *fout,
 
 			if (r != 1)
 				return ERROR_CODE;
-			
+
 			found = 1;
 			break;
-			
+
 		}
 
 		if (found == 0)
@@ -183,12 +183,12 @@ int include_directive(char *line, struct hashmap_t *hm, FILE *fout,
 	return 1;
 }
 
-void process_line(char *line, struct hashmap_t *hm, FILE *fout) 
+void process_line(char *line, struct hashmap_t *hm, FILE *fout)
 {
 	char *token;
 	char buffer[MAX_LEN], str[MAX_LEN];
 	int n, i;
-	
+
 	token = strtok(line, "\n ");
 	memset(buffer, 0, MAX_LEN);
 
@@ -270,13 +270,13 @@ int data_preprocessing(struct hashmap_t *hm, FILE *fin, FILE *fout,
 
 			if (include_directive(line, hm, fout, in_file, directories, n_dirs) != 1)
 				return 12;
-		
+
 		} else {
 			// caz in care nu am directive
 
 			if (can_write == 1)
 				process_line(line, hm, fout);
-			
+
 		}
 	}
 
@@ -375,7 +375,7 @@ int main(int argc, char *argv[])
 		fout = fopen(output_file, "w");
 	else
 		fout = stdout;
-	
+
 	if (fout == NULL) {
 		printf("Can't open file - ouput\n");
 		return 12;
