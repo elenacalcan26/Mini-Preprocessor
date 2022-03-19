@@ -38,7 +38,6 @@ void I_flag(char *arg, char **directories, int *n_dirs)
 
 int check_if_cond(struct hashmap_t *hm, char *cond)
 {
-
 	if (strcmp(cond, "0") == 0)
 		return 0;
 
@@ -57,6 +56,7 @@ void define_directive(struct hashmap_t *hm, FILE *fin, char *line)
 	int n = 0;
 	int n_dirs = 0;
 	int i;
+
 	strcpy(tmp_line, line);
 	token = strtok(tmp_line, " ");
 	key = strtok(NULL, " ");
@@ -87,20 +87,20 @@ void define_directive(struct hashmap_t *hm, FILE *fin, char *line)
 				}
 
 				if (value[i] == ' ' || i == strlen(value) - 1) {
-					if (has_key(hm, find_val) == 1) {
+					if (has_key(hm, find_val) == 1) 
 						strcat(buff_value, get(hm, find_val));
-					} else {
+					else 
 						strcat(buff_value, find_val);
-					}
+					
 
 					memset(find_val, 0, MAX_LEN);
 					n = 0;
 					continue;
 				}
 			}
-		} else {
+		} else 
 			value = "";
-		}
+		
 	} else {
 		value = strtok(NULL, "\\\n");
 		value[strlen(value) - 1] = '\0';
@@ -151,6 +151,7 @@ int include_directive(char *line, struct hashmap_t *hm, FILE *fout,
 
 		if (r != 1)
 			return 12;
+	
 	} else {
 		found = 0;
 
@@ -165,12 +166,12 @@ int include_directive(char *line, struct hashmap_t *hm, FILE *fout,
 
 			r = data_preprocessing(hm, f_header, fout, path, directories, n_dirs);
 
-			if (r != 1) {
+			if (r != 1)
 				return ERROR_CODE;
-			} else {
-				found = 1;
-				break;
-			}
+			
+			found = 1;
+			break;
+			
 		}
 
 		if (found == 0)
@@ -236,6 +237,7 @@ int data_preprocessing(struct hashmap_t *hm, FILE *fin, FILE *fout,
 
 			if (include_directive(line, hm, fout, in_file, directories, n_dirs) != 1)
 				return 12;
+		
 		} else {
 			// caz in care nu am directive
 			token = strtok(line, "\n ");
@@ -350,22 +352,21 @@ int main(int argc, char *argv[])
 	if (cnt_in > 2 || cnt_out > 1)
 		return 12;
 
-	if (strlen(input_file) > 1) {
+	if (strlen(input_file) > 1) 
 		fin = fopen(input_file, "r");
-	} else {
+	else
 		fin = stdin;
-	}
 
 	if (fin == NULL) {
 		printf("Can't open file - input\n");
 		return 12;
 	}
 
-	if (strlen(output_file) > 1) {
+	if (strlen(output_file) > 1) 
 		fout = fopen(output_file, "w");
-	} else {
+	else 
 		fout = stdout;
-	}
+	
 
 	if (fout == NULL) {
 		printf("Can't open file - ouput\n");
