@@ -142,7 +142,7 @@ char *get(struct hashmap_t *hm, char *key)
 {
 	int i;
 	int index;
-	
+
 	index = hash(key) % hm->hmax;
 
 	for (i = index; i < hm->hmax; i++)
@@ -160,6 +160,7 @@ void remove_pair(struct hashmap_t *hm, char *key)
 {
 	int i;
 	int index;
+	
 	index = hash(key) % hm->hmax;
 
 	for (i = index; i < hm->hmax; i++) {
@@ -187,10 +188,8 @@ void free_hm(struct hashmap_t *hm)
 {
 	int i;
 
-	for (i = 0; i < hm->hmax; i++)
-	{
-		if (hm->buckets[i] != NULL)
-		{
+	for (i = 0; i < hm->hmax; i++) {
+		if (hm->buckets[i] != NULL)	{
 			free(hm->buckets[i]->key);
 			free(hm->buckets[i]->value);
 			free(hm->buckets[i]);
