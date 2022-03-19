@@ -10,4 +10,4 @@ hashmap.obj: hashmap.c
 	cl.exe $(CFLAGS) /Fohashmap.obj /c hashmap.c
 
 clean:
-	del *.obj *.exe
+	del *.obj so-cpp.exe
