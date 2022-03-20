@@ -134,7 +134,10 @@ void put(struct hashmap_t *hm, char *key, char *value)
 				for (i = hm->size; i < hm->hmax; i++)
 					hm->buckets[i] = NULL;
 
-				// se insereaza perechea in primul bucket gol gasit
+				/**
+				 * se adauga pereceha in primul
+				 * bucket gol gasit
+				 */
 				for (i = hm->size; i < hm->hmax; i++) {
 					if (hm->buckets[i] == NULL) {
 						hm->buckets[i] = new_pair;

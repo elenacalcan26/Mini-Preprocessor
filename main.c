@@ -6,7 +6,7 @@
 
 #define HMAX 200
 #define MAX_LEN 256
-#define ENOMEM 12
+#define NOMEM 12
 
 /**
  * @brief defineste simbolul dat ca argument cu valoarea acestuia
@@ -46,7 +46,7 @@ void I_flag(char *arg, char **directories, int *n_dirs)
 	directories[*n_dirs] = (char *)calloc(strlen(arg) + 1, sizeof(char));
 
 	if (directories[*n_dirs] == NULL)
-		exit(ENOMEM);
+		exit(NOMEM);
 
 	strcpy(directories[*n_dirs], arg);
 	*n_dirs = *n_dirs + 1;
@@ -131,9 +131,10 @@ void define_directive(struct hashmap_t *hm, FILE *fin, char *line)
 				}
 
 				/**
-				 * s-a ajuns la un spatiu sau la ultimul caracter
-				 * din valoarea simbolului si se adauga string-ul
-				 * construit la valoarea simbolului definti
+				 * s-a ajuns la un spatiu sau la ultimul
+				 * caracter din valoarea simbolului si
+				 * se adauga string-ul construit la
+				 * valoarea simbolului definti
 				 */
 				if (value[i] == ' ' || i == strlen(value) - 1) {
 					/**
@@ -462,7 +463,7 @@ int main(int argc, char *argv[])
 
 	if (hm == NULL) {
 		printf("Malloc failed - hashmap!\n");
-		exit(ENOMEM);
+		exit(NOMEM);
 	}
 
 	init_hm(hm, HMAX);
@@ -470,7 +471,7 @@ int main(int argc, char *argv[])
 	directories = (char **)malloc(MAX_LEN * sizeof(char *));
 	if (directories == NULL) {
 		printf("Malloc failed\n");
-		exit(ENOMEM);
+		exit(NOMEM);
 	}
 
 	memset(input_file, 0, MAX_LEN);
@@ -532,7 +533,7 @@ int main(int argc, char *argv[])
 
 	// se verifica numarul de fisiere in/out primite ca argumente
 	if (cnt_in > 1 || cnt_out > 1)
-		return ENOMEM;
+		return NOMEM;
 
 	// se verifica daca s-a primit  un fisier intrare / iesire
 	if (strlen(input_file) > 1)
@@ -542,7 +543,7 @@ int main(int argc, char *argv[])
 
 	if (fin == NULL) {
 		printf("Can't open file - input\n");
-		exit(ENOMEM);
+		exit(NOMEM);
 	}
 
 	if (strlen(output_file) > 1)
@@ -552,7 +553,7 @@ int main(int argc, char *argv[])
 
 	if (fout == NULL) {
 		printf("Can't open file - ouput\n");
-		exit(ENOMEM);
+		exit(NOMEM);
 	}
 
 	r = data_preprocessing(hm, fin, fout, input_file, directories, n_dirs);
