@@ -5,19 +5,28 @@
 #include "hashmap.h"
 
 #define HMAX 200
-#define ERROR_CODE 12
 #define MAX_LEN 256
+#define ENOMEM 12
 
+/**
+ * @brief defineste simbolul dat ca argument cu valoarea acestuia
+ *
+ * @param hm hashmap ce stocheaza define-uri
+ * @param arg argument specificat de flag-ul -D
+ */
 void D_flag(struct hashmap_t *hm, char *arg)
 {
 	char *key, *value;
 	char *ch;
 
+	// se cauta aparitia caracterului '='
 	ch = strchr(arg, '=');
 	if (ch == NULL) {
+		// simbolului ii lipseste maparea
 		key = arg;
 		value = "";
 	} else {
+		// se asociaza simbolului valoarea dat ca argument
 		key = strtok(arg, "=");
 		value = strtok(NULL, "");
 	}
@@ -25,17 +34,32 @@ void D_flag(struct hashmap_t *hm, char *arg)
 	put(hm, key, value);
 }
 
+/**
+ * @brief Se aduaga intr-un array de directoare, directorul dat ca argument
+ *
+ * @param arg argumentul specificat de flag-ul -I
+ * @param directories array-ul de directoare
+ * @param n_dirs numarul de directoare
+ */
 void I_flag(char *arg, char **directories, int *n_dirs)
 {
 	directories[*n_dirs] = (char *)calloc(strlen(arg) + 1, sizeof(char));
 
 	if (directories[*n_dirs] == NULL)
-		exit(12);
+		exit(ENOMEM);
 
 	strcpy(directories[*n_dirs], arg);
 	*n_dirs = *n_dirs + 1;
 }
 
+/**
+ * @brief Verifica daca conditia directivei #if se evalueaza la 0 sau la o
+ * valoare diferita de 0
+ *
+ * @param hm hashmap-ul cu define-uri
+ * @param cond conditia care se evalueaza
+ * @return int valoarea conditiei, 0 daca se evalueaza la 0, 1 in caz contrar
+ */
 int check_if_cond(struct hashmap_t *hm, char *cond)
 {
 	if (strcmp(cond, "0") == 0)
@@ -47,6 +71,14 @@ int check_if_cond(struct hashmap_t *hm, char *cond)
 	return 1;
 }
 
+/**
+ * @brief Este implementata directiva #define.
+ * Se stocheaza in hashmap un simbol definit cu valoarea asociata acestuia
+ *
+ * @param hm hashmap-ul ce contine define-uri
+ * @param fin fisierul de intrare
+ * @param line linia pe care s-a gasit un #define
+ */
 void define_directive(struct hashmap_t *hm, FILE *fin, char *line)
 {
 	char *key, *value, *token;
@@ -64,12 +96,14 @@ void define_directive(struct hashmap_t *hm, FILE *fin, char *line)
 	memset(buff_value, 0, MAX_LEN);
 	memset(find_val, 0, MAX_LEN);
 
+	// se verifica daca #define -ul este de tip multiline
 	if (line[strlen(line) - 2] != '\\') {
 		// nu este define pe mai multe linii
 		value = strtok(NULL, "\n");
 
 		if (value != NULL) {
 
+			// se ia valoarea simbolului caracter cu caracter
 			for (i = 0; i < strlen(value); i++) {
 				if (value[i] != ' ') {
 					find_val[n] = value[i];
@@ -77,10 +111,18 @@ void define_directive(struct hashmap_t *hm, FILE *fin, char *line)
 					find_val[n] = '\0';
 				}
 
+				/**
+				 * se verifica daca valoarea simbolului
+				 * contine un simbol deja definit inainte
+				 */
 				if (has_key(hm, find_val) == 1 &&
 					i < strlen(value - 1) &&
 					value[i + 1] == ' ') {
 
+					/**
+					 * se inlocuieste simbolul gasit cu
+					 * valoarea sa salvat in hashmap
+					 */
 					strcat(buff_value, get(hm, find_val));
 
 					memset(find_val, 0, MAX_LEN);
@@ -88,7 +130,16 @@ void define_directive(struct hashmap_t *hm, FILE *fin, char *line)
 					continue;
 				}
 
+				/**
+				 * s-a ajuns la un spatiu sau la ultimul caracter
+				 * din valoarea simbolului si se adauga string-ul
+				 * construit la valoarea simbolului definti
+				 */
 				if (value[i] == ' ' || i == strlen(value) - 1) {
+					/**
+					 * se verifica daca s-a gasit un simbol
+					 * defintit anterior
+					 */
 					if (has_key(hm, find_val) == 1)
 						strcat(buff_value,
 						get(hm, find_val));
@@ -102,13 +153,21 @@ void define_directive(struct hashmap_t *hm, FILE *fin, char *line)
 				}
 			}
 		} else
+			// lipseste valoarea simbolului
 			value = "";
 
 	} else {
+		// #define tip multilinie
+
 		value = strtok(NULL, "\\\n");
 		value[strlen(value) - 1] = '\0';
 		strcpy(buff_value, value);
 
+		/**
+		 * se citeste linie cu linie valorile define-ului
+		 * si se concateneaza la un string ce va fi asociat
+		 * simbolului
+		 */
 		while (fgets(line, sizeof(line), fin) != NULL) {
 			memset(find_val, 0, MAX_LEN);
 			n = 0;
@@ -135,6 +194,19 @@ void define_directive(struct hashmap_t *hm, FILE *fin, char *line)
 	put(hm, key, buff_value);
 }
 
+/**
+ * @brief Rezolva directivele de tip #include.
+ * Atunci cand s-a gasit fisierul indicat de header se preproceseaza
+ * liniile de cod ale acestuia in fisierul de iesire.
+ *
+ * @param line linia pe care s-a gasit directiva #inlcude
+ * @param hm hashmap-ul cu define-uri
+ * @param fout fisierul de output
+ * @param in_file numele fisierului de intrare
+ * @param directories array de directoare
+ * @param n_dirs numarul de directoare
+ * @return int 1 s-a inclus cu succes header-ul, -1 in caz contrar
+ */
 int include_directive(char *line, struct hashmap_t *hm, FILE *fout,
 					  char *in_file, char **directories,
 					  int n_dirs)
@@ -146,23 +218,33 @@ int include_directive(char *line, struct hashmap_t *hm, FILE *fout,
 	header = strtok(line, "\"");
 	header = strtok(NULL, "\"");
 
-	// iau fisierul .h
+	// se ia fisierul inclus
 	ret = strrchr(in_file, '/');
 
-	// iau directorul curent
+	// se ia directorul curent si se creeaza un path
 	in_file[strlen(in_file) - strlen(ret) + 1] = '\0';
 	strcat(in_file, header);
 
+	// se deschide fisierul
 	f_header = fopen(in_file, "r");
 	if (f_header != NULL) {
+
+		// se preproceseaza fisierul
 		r = data_preprocessing(hm, f_header, fout, in_file,
 			directories, n_dirs);
 
+		// se verifica daca preprocesarea s-a realizat cu succes
 		if (r != 1)
-			return 12;
+			return -1;
 
 	} else {
-		found = 0;
+		/**
+		 * fisierul de header nu se afla in directorul curent.
+		 * se ia fiecare director cunoscut si se creeaza path-uri
+		 * catre fisierul indicat de header.
+		 */
+
+		found = 0; // indica daca s-a gasit un path
 
 		for (i = 0; i < n_dirs; i++) {
 			memset(path, 0, MAX_LEN);
@@ -171,21 +253,27 @@ int include_directive(char *line, struct hashmap_t *hm, FILE *fout,
 
 			f_header = fopen(path, "r");
 			if (f_header == NULL)
-				return ERROR_CODE;
+				return -1;
 
+			// se preproceseaza fisierul
 			r = data_preprocessing(hm, f_header, fout, path,
 				directories, n_dirs);
 
+			// se verifica daca preprocesarea s-a realizat cu succes
 			if (r != 1)
-				return ERROR_CODE;
+				return -1;
 
 			found = 1;
 			break;
 
 		}
 
+		/**
+		 * se verifica daca s-a gasit un path catre
+		 * fisierul indicat de header
+		 */
 		if (found == 0)
-			return ERROR_CODE;
+			return -1;
 	}
 
 	fclose(f_header);
@@ -193,12 +281,20 @@ int include_directive(char *line, struct hashmap_t *hm, FILE *fout,
 	return 1;
 }
 
+/**
+ * @brief Se preproceseaza o linie care nu contine directive.
+ *
+ * @param line linia preprocesata
+ * @param hm hashmap-ul cu define-uri
+ * @param fout fisierul de output
+ */
 void process_line(char *line, struct hashmap_t *hm, FILE *fout)
 {
 	char *token;
 	char buffer[MAX_LEN], str[MAX_LEN];
 	int n, i;
 
+	// se imparte linia dupa spatii
 	token = strtok(line, "\n ");
 	memset(buffer, 0, MAX_LEN);
 
@@ -206,10 +302,13 @@ void process_line(char *line, struct hashmap_t *hm, FILE *fout)
 		memset(str, 0, MAX_LEN);
 		n = 0;
 
+		// se parcurge un cuvant caracter cu caracter
 		for (i = 0; i < strlen(token); i++) {
 			if (token[i] != ' ' && token[i] != '\t') {
 				str[n] += token[i];
 				n++;
+
+				// se verifica daca s-a gasit un simbol definit
 				if (has_key(hm, str) == 1) {
 					strcat(buffer, get(hm, str));
 					memset(str, 0, MAX_LEN);
@@ -226,6 +325,17 @@ void process_line(char *line, struct hashmap_t *hm, FILE *fout)
 	fprintf(fout, "%s\n", buffer);
 }
 
+/**
+ * @brief Se preproceseaza fisierul primit la intrare
+ *
+ * @param hm hashmap-ul de define-uri
+ * @param fin fisierul preprocesat
+ * @param fout fisierul de input
+ * @param in_file numele fisierului de input
+ * @param directories array de directoare
+ * @param n_dirs nuamrul de directoare
+ * @return int 1 succes, -1 fail
+ */
 int data_preprocessing(struct hashmap_t *hm, FILE *fin, FILE *fout,
 					   char *in_file, char **directories,
 					   int n_dirs)
@@ -235,14 +345,19 @@ int data_preprocessing(struct hashmap_t *hm, FILE *fin, FILE *fout,
 	int line_len = 0, i;
 	char *token;
 	char buffer[MAX_LEN];
-	int can_write = 1; // se poate scrie
+	int skip = 1; // se poate scrie
 
 	memset(line, 0, MAX_LEN);
 	memset(buffer, 0, MAX_LEN);
 
+	/**
+	 * se citeste linie cu linie fisierul preprocesat
+	 * si se verifica pe fiecare linie ce fel de directiva
+	 * se afla
+	 */
 	while (fgets(line, MAX_LEN, fin) != NULL) {
-		// verific daca pe linie se afla o directiva
-		if (strstr(line, "#define ") && can_write == 1) {
+
+		if (strstr(line, "#define ") && skip == 1) {
 
 			define_directive(hm, fin, line);
 		} else if (strstr(line, "#undef ")) {
@@ -254,41 +369,72 @@ int data_preprocessing(struct hashmap_t *hm, FILE *fin, FILE *fout,
 			token = strtok(line, " ");
 			token = strtok(NULL, "\n");
 
-			can_write = check_if_cond(hm, token);
+			/**
+			 * in functie de evaluarea conditiei se scrie
+			 * blocul din interiorul acestuia sau nu
+			 */
+			skip = check_if_cond(hm, token);
 		} else if (strstr(line, "#elif ")) {
 
 			token = strtok(line, " ");
 			token = strtok(NULL, "\n");
 
-			can_write = check_if_cond(hm, token);
+			/**
+			 * in functie de evaluarea conditiei se scrie
+			 * blocul din interiorul acestuia sau nu
+			 */
+			skip = check_if_cond(hm, token);
 		} else if (strstr(line, "#ifdef ")) {
 			token = strtok(line, " ");
 			token = strtok(NULL, "\n ");
-			can_write = has_key(hm, token);
+
+			/**
+			 * in functie de existenta cheii data
+			 * de directiva se scrie blocul de cod
+			 */
+			skip = has_key(hm, token);
 		} else if (strstr(line, "#ifndef ")) {
 
 			token = strtok(line, " ");
 			token = strtok(NULL, "\n");
 
-			can_write = ~has_key(hm, token) * (-1);
+			/**
+			 * in functie de existenta cheii (aici negata)
+			 * data de directiva se scrie blocul
+			 */
+			skip = ~has_key(hm, token) * (-1);
 		} else if (strstr(line, "#else")) {
 
-			can_write = ~can_write * (-1);
+			/**
+			 * se neaga variabila si in functie de rezultat
+			 * se scrie blocul de cod sau nu
+			 */
+			skip = ~skip * (-1);
 		} else if (strstr(line, "#endif")) {
-			can_write = 1;
+			// se resteaza variabila
+			skip = 1;
 			strcat(buffer, "\n");
 		} else if (strstr(line, "#include")) {
 
+			/**
+			 * se verifica daca se poate include header-ul
+			 */
 			if (include_directive(
 				line, hm, fout, in_file, directories, n_dirs) !=
 				1)
 
-				return 12;
+				return -1; // fail
 
 		} else {
-			// caz in care nu am directive
+			/**
+			 * caz in care nu exista directive pe linia curenta.
+			 * linia se poate scrie doar daca este in afara
+			 * directivelor #if, #elif, #ifdef, #ifndef etc.
+			 * sau daca sunt linii dintr-un bloc a carei conditie
+			 * este evaluata la o valoare diferita de 0.
+			 */
 
-			if (can_write == 1)
+			if (skip == 1)
 				process_line(line, hm, fout);
 
 		}
@@ -308,29 +454,32 @@ int main(int argc, char *argv[])
 	char **directories;
 
 	int n_dirs = 0;
-	int cnt_in = 0;
-	int cnt_out = 0;
+	int cnt_in = 0; // numara fisierele de intrare primite la intrare
+	int cnt_out = 0; // numara fisierele de ouptu  primite la intrare
 	int i, r;
 
 	struct hashmap_t *hm = malloc(sizeof(struct hashmap_t));
 
 	if (hm == NULL) {
 		printf("Malloc failed - hashmap!\n");
-		exit(12);
+		exit(ENOMEM);
 	}
 
 	init_hm(hm, HMAX);
-	directories = (char **)malloc(MAX_LEN * sizeof(char *));
 
+	directories = (char **)malloc(MAX_LEN * sizeof(char *));
 	if (directories == NULL) {
 		printf("Malloc failed\n");
-		exit(12);
+		exit(ENOMEM);
 	}
 
 	memset(input_file, 0, MAX_LEN);
 	memset(output_file, 0, MAX_LEN);
 
+	// se parcurg argumentele din linia de comanda si se verifica flag-urile
 	for (i = 1; i < argc; i++) {
+
+		//-D <SYMBOL>[=<MAPPING>] sau -D<SYMBOL>[=<MAPPING>]
 		if (strncmp(argv[i], "-D", 2) == 0) {
 			if (strlen(argv[i]) > 2) {
 				memmove(argv[i], argv[i] + 2, strlen(argv[i]));
@@ -340,6 +489,7 @@ int main(int argc, char *argv[])
 				i++;
 			}
 		} else if (strncmp(argv[i], "-I", 2) == 0) {
+			// -I <DIR> sau -I<DIR>
 
 			if (strlen(argv[i]) > 2) {
 
@@ -351,6 +501,7 @@ int main(int argc, char *argv[])
 				i++;
 			}
 		} else if (strncmp(argv[i], "-o", 2) == 0) {
+			// -o <OUTFILE>/ -o<OUTFILE>
 
 			if (strlen(argv[i]) > 2) {
 				memmove(argv[i], argv[i] + 2, strlen(argv[i]));
@@ -362,6 +513,13 @@ int main(int argc, char *argv[])
 			}
 			cnt_out++;
 		} else {
+			/**
+			 * nu s-a gasit nici un flag,
+			 * atunci s-au gasit fisiere pentru I/O
+			 * primul fisier este considerat de intrare,
+			 * iar ultimul de iesire
+			 */
+
 			if (strlen(input_file) > 1) {
 				strcpy(output_file, argv[i]);
 				cnt_out++;
@@ -372,9 +530,11 @@ int main(int argc, char *argv[])
 		}
 	}
 
-	if (cnt_in > 2 || cnt_out > 1)
-		return 12;
+	// se verifica numarul de fisiere in/out primite ca argumente
+	if (cnt_in > 1 || cnt_out > 1)
+		return ENOMEM;
 
+	// se verifica daca s-a primit  un fisier intrare / iesire
 	if (strlen(input_file) > 1)
 		fin = fopen(input_file, "r");
 	else
@@ -382,7 +542,7 @@ int main(int argc, char *argv[])
 
 	if (fin == NULL) {
 		printf("Can't open file - input\n");
-		return 12;
+		exit(ENOMEM);
 	}
 
 	if (strlen(output_file) > 1)
@@ -392,13 +552,13 @@ int main(int argc, char *argv[])
 
 	if (fout == NULL) {
 		printf("Can't open file - ouput\n");
-		return 12;
+		exit(ENOMEM);
 	}
 
 	r = data_preprocessing(hm, fin, fout, input_file, directories, n_dirs);
 
 	if (r != 1)
-		return ERROR_CODE;
+		return -1;
 
 	if (fin != NULL)
 		fclose(fin);
